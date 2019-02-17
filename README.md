@@ -6,7 +6,7 @@ Download GAMAPLATFORM 1.8 here https://gama-platform.github.io/download for free
 
 Create a new model and copy/paste the model to your GAMA, file: modelSerge.gaml.
 
-The R files help to have friendly plots. The mathematical model was implemeted in GAMAPLATFORM using Gaml language
+The R files help to have friendly plots. The mathematical model was implemented in GAMAPLATFORM using Gaml language
 
 Enjoy.
 
