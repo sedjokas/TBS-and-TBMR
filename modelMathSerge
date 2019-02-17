@@ -41,11 +41,11 @@ global {
 	int S_people <- 100 min: 50 max:100000; //Number of scusceptible individuals
     int ES_people <- 0 min: 0 max:100000; //Number of exposed TBS individuals
     int ER_people <- 0 min: 0 max:100000; //Number of exposed TBMR  individuals
-    int IS_people <- 0 min: 1 max:100000; //Number of infectious TBS individuals
-    int IR_people <- 0 min: 1 max:100000; //Number of  infectious TBMR individuals
+    int IS_people <- 2 min: 1 max:100000; //Number of infectious TBS individuals
+    int IR_people <- 1 min: 1 max:100000; //Number of  infectious TBMR individuals
     int RS_people <- 0 min: 0 max:100000; //Number of recovered TBS individuals
     int RR_people <- 0 min: 0 max:100000; //Number of recovered TBMR individuals
-    int IinitS <- 1 min: 1 max: 100000; //Number of infectious TBS individuals
+    int IinitS <- 2 min: 2 max: 100000; //Number of infectious TBS individuals
     int IinitR <- 1 min: 1 max: 100000; //Number of infectious TBS individuals
     float N <- S_people + ES_people + ER_people + IS_people + IR_people + RS_people + RR_people; // Total population
 
@@ -67,9 +67,18 @@ global {
 	}
 
 // Create loop to manage the time of the simulation
-reflex pause_simulation when: (time = 50) {
+reflex pause_simulation when: (cycle = 100) {
 					do pause ;
 			}	
+			
+			
+			
+			reflex save_data when: every(1#cycle){
+		//save the following text into the csv  file. Note that each time the save statement is used, a new line is added at the end of the file.
+		save [cycle,first(SEIR_maths).S,first(SEIR_maths).ES,first(SEIR_maths).IS,first(SEIR_maths).RS,first(SEIR_maths).ER,first(SEIR_maths).IR,first(SEIR_maths).RR] to: "../results/dataserge3.csv" type:"csv" rewrite: false;
+		
+	} 
+			
 }
 
 // cerate the species of the created math model	
@@ -85,17 +94,6 @@ species SEIR_maths {
 	float RR;
 	
  // definition de l'equation du modele SIR  
-	
-		/*equation SEIR_TB { 
-		    diff(S,t) = Gamma - p*betaS*S*IS - (1-p)*betaR*S*IR - mu*S;
-			diff(ES,t) = p*betaS*S*IS - (mu + kS + r1)*ES + dS*IS -  betaR*ES*IR + betaS*RR*IS +  betaS*RS*IS ;
-			diff(IS,t) = kS*ES - (muStarS + alphaS + gamma + dS)*IS + sigmaS*RS;
-			diff(RS,t) = r1*ES + alphaS*IS - betaS*RS*IS - mu*RS - betaR*RS*IR - sigmaS*RS;
-			diff(ER,t) = gamma*IS - (mu + kR + r2)*ER + dR*IR + (1-p)*betaR*S*IR + betaR*ES*IR + betaR*RR*IR + betaR*RS*IR;
-			diff(IR,t) = kR*ER - (muStarR + alphaS + dR)*IR + sigmaR*RR;
-			diff(RR,t) = r2*ER + alphaR*IR - betaR*RR*IR - mu*RR - betaS*RR*IS - sigmaR*RR;
-			
-			} */
 			
 			equation SEIR_TB { 
 		    diff(S,t) = Gamma - betaS*S*IS - betaR*S*IR - mu*S;
@@ -137,23 +135,23 @@ experiment EXECUTE_Model type: gui {
 	// Parametr for users
 	//parameter 'Proportion' type: float var: p <- 0.5 category: "Parameters"; // Proportion
 	parameter 'Discrétisation steps for RK4' type: float var: stepI <- 0.07 category: "Parameters"; // stepI
-	parameter 'Recrutment: sigmaS' type: float var: sigmaS <- 0.0565 category: "Parameters"; //relapse RS to IS
-	parameter 'Recrutment: sigmaS' type: float var: sigmaR <- 0.0565 category: "Parameters"; //relapse RR to IR
-	parameter 'Recrutment: Gamma' type: float var: Gamma <- 5.0 category: "Parameters"; //Recruitment in S
-	parameter 'Mortality rate of general population' type:  float var: mu  <- 0.08 category: "Parameters"; // Mortality rate of general population
+	parameter 'relapse: sigmaS' type: float var: sigmaS <- 0.0436 category: "Parameters"; //relapse RS to IS
+	parameter 'relapse: sigmaR' type: float var: sigmaR <- 0.03375 category: "Parameters"; //relapse RR to IR
+	parameter 'Recrutment: Gamma' type: float var: Gamma <- 3.03 category: "Parameters"; //Recruitment in S
+	parameter 'Mortality rate of general population' type:  float var: mu  <- 0.0196 category: "Parameters"; // Mortality rate of general population
 	parameter 'Mortality rate for TBS' type: float var: muStarS <- 0.04 category: "Parameters"; // Mortality rate for TBS
-	parameter 'Mortality rate for TBMR' type: float var: muStarR <- 0.14 category: "Parameters"; // Mortality rate for TBMR
+	parameter 'Mortality rate for TBMR' type: float var: muStarR <- 0.13 category: "Parameters"; // Mortality rate for TBMR
 	parameter 'Reactivation rate' type: float var: betaS <- 0.035 category: "Parameters"; // Reactivation rate
 	parameter 'Amplification rate' type: float var: betaR <- 0.035 category: "Parameters"; // Amplification rate
-	parameter 'Recovered rate for TBS' type: float var: alphaS <- 0.89 category: "Parameters"; // Recovered rate for TBS
-	parameter 'Recovered rate for TBMR' type: float var: alphaR <- 0.72 category: "Parameters"; // Recovered rate for TBMR
-	parameter 'Rate of a ES people (TBS) to became Exposed TBMR gamma' type: float var: gamma <- 0.048 category: "Parameters"; // Rate of a ES people (TBS) to became Exposed TBMR 
-	parameter 'Rate of become exposed from IS to ES' type: float var: dS <- 0.001 category: "Parameters"; // Rate of become exposed from IS to ES
-	parameter 'Rate of become exposed from IR to ER' type: float var: dR <- 0.001 category: "Parameters"; // Rate of become exposed from IR to ER
-	parameter 'Rate of become infctious from ES to IS' type: float var: kS <- 0.129 category: "Parameters"; // Rate of become infctious from ES to IS
-	parameter 'Rate of become infctious from ER to IR' type: float var: kR <- 0.821 category: "Parameters"; // Rate of become infctious from ER to IR
-	parameter 'Rate of recovered from ES to  RS' type: float var: r1 <- 0.89 category: "Parameters"; // Rate of recovered from ES to  RS
-	parameter 'Rate of recovered from ER to  RR' type: float var: r2<- 0.72 category: "Parameters"; // Rate of recovered from ER to  RR
+	parameter 'Recovered rate for TBS' type: float var: alphaS <- 0.675 category: "Parameters"; // Recovered rate for TBS
+	parameter 'Recovered rate for TBMR' type: float var: alphaR <- 0.6 category: "Parameters"; // Recovered rate for TBMR
+	parameter 'Rate of a ES people (TBS) to became Exposed TBMR gamma' type: float var: gamma <- 0.59 category: "Parameters"; // Rate of a ES people (TBS) to became Exposed TBMR 
+	parameter 'Rate of become exposed from IS to ES' type: float var: dS <- 0.21 category: "Parameters"; // Rate of become exposed from IS to ES
+	parameter 'Rate of become exposed from IR to ER' type: float var: dR <- 0.21 category: "Parameters"; // Rate of become exposed from IR to ER
+	parameter 'Rate of become infctious from ES to IS' type: float var: kS <- 0.202 category: "Parameters"; // Rate of become infctious from ES to IS
+	parameter 'Rate of become infctious from ER to IR' type: float var: kR <- 0.25 category: "Parameters"; // Rate of become infctious from ER to IR
+	parameter 'Rate of recovered from ES to  RS' type: float var: r1 <- 0.9 category: "Parameters"; // Rate of recovered from ES to  RS
+	parameter 'Rate of recovered from ER to  RR' type: float var: r2<- 0.8 category: "Parameters"; // Rate of recovered from ER to  RR
 	 
 	output { 
 		
@@ -186,7 +184,7 @@ experiment EXECUTE_Model type: gui {
 		}	
 	
 	//Graphic line X 50
-		
+	 	
 	display SEIR_MATHS_lineX50 refresh_every: 1 {
 			chart "TB MODEL for TBS and TBMR X 50" type: series background: rgb('white') {
 				data 'S' value: first(SEIR_maths).S*2 color: rgb('green') ;				
